@@ -1,10 +1,12 @@
 import bcrypt
-from flask import Flask, Blueprint
-from blueprints import auth, produits
+import logging
+from flask import Flask, jsonify, url_for
+from blueprints import auth, products, orders
 from models import db, User, Product
 from config import ADMIN_PASSWORD, SALT
 from logging.config import dictConfig
-import logging
+#from flask_swagger import swagger
+from flasgger import Swagger
 
 app = Flask(__name__)
 
@@ -13,8 +15,9 @@ logging.basicConfig(level=logging.DEBUG)
 logging.getLogger('werkzeug').setLevel(logging.INFO)
 
 # Ajouts des blueprints
-app.register_blueprint(auth.bp)
-app.register_blueprint(produits.bp)
+app.register_blueprint(auth.auth_bp)
+app.register_blueprint(products.product_bp)
+app.register_blueprint(orders.order_bp)
 
 # Configuration de la base de données
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///digimarket.db'
@@ -66,3 +69,11 @@ def add_sample_data():
         app.logger.info("Ajout des produits réussi")
     else:
         app.logger.debug("Ajout des produits déjà fait")
+
+swagger = Swagger(app, template={
+    "info": {
+        "title": "E-commerce Flask API",
+        "description": "Documentation de l'API REST E-commerce",
+        "version": "1.0.0"
+    }
+})

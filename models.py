@@ -33,28 +33,32 @@ class Product(db.Model):
     def __repr__(self):
         return f'<Product: id={self.id}, nom={self.nom}, categorie={self.categorie}, prix={self.prix}, stock={self.quantite_stock}>'
 
-# class Cart(db.Model):
-#     __tablename__ = 'carts'
+class Order(db.Model):
+    __tablename__ = 'order'
 
-#     id = db.Column(db.Integer, primary_key=True)
-#     created_at = db.Column(db.DateTime, default=datetime.utcnow)
+    id = db.Column(db.Integer, primary_key=True)
+    utilisateur_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    date_commande = db.Column(db.DateTime, default=datetime.now(timezone.utc))
+    adresse_livraison = db.Column(db.String(200), nullable=False)
+    statut = db.Column(db.String(20)) # en attente, validée, expédiée, annulée
 
-#     # Relation avec les éléments du panier
-#     items = db.relationship('CartItem', backref='cart', lazy=True, cascade='all, delete-orphan')
+    # Relation avec les éléments produit de la commande
+    items = db.relationship('OrderItem', backref='order', lazy=True, cascade='all, delete-orphan')
 
-#     def __repr__(self):
-#         return f'<Cart {self.id}>'
+    def __repr__(self):
+        return f'<Order: id={self.id}, utilisateur_id={self.utilisateur_id}, date_commande={self.date_commande}, adresse_livraison={self.adresse_livraison}, statut={self.statut}>'
 
-# class CartItem(db.Model):
-#     __tablename__ = 'cart_items'
+class OrderItem(db.Model):
+    __tablename__ = 'order_item'
 
-#     id = db.Column(db.Integer, primary_key=True)
-#     cart_id = db.Column(db.Integer, db.ForeignKey('carts.id'), nullable=False)
-#     product_id = db.Column(db.String(10), db.ForeignKey('products.id'), nullable=False)
-#     quantity = db.Column(db.Integer, default=1)
+    id = db.Column(db.Integer, primary_key=True)
+    commande_id = db.Column(db.Integer, db.ForeignKey('order.id'), nullable=False)
+    produit_id = db.Column(db.Integer, db.ForeignKey('product.id'), nullable=False)
+    quantite = db.Column(db.Integer, nullable=False)
+    prix_unitaire = db.Column(db.Float, nullable=False)
 
-#     # Relation avec le produit
-#     product = db.relationship('Product', backref='cart_items')
+    # Relation avec le produit
+    product = db.relationship('Product', backref='order_item')
 
-#     def __repr__(self):
-#         return f'<CartItem {self.id}, Product: {self.product_id}, Qty: {self.quantity}>'
+    def __repr__(self):
+        return f'<OrderItem {self.id}, commande_id={self.commande_id}, produit_id={self.produit_id}, quantite={self.quantite}>'

@@ -6,11 +6,39 @@ import jwt
 import bcrypt
 from config import PREFIX, SALT, JWT_SECRET
 
-bp = Blueprint("auth", __name__, url_prefix=f"{PREFIX}/auth")
+from flasgger import Swagger
 
-@bp.route("/register", methods=['POST'])
+auth_bp = Blueprint("auth", __name__, url_prefix=f"{PREFIX}/auth")
+
 @require_body_parameters({'email', 'password', 'nom'})
-def register_new_user():
+@auth_bp.route("/register", methods=['POST'])
+def register():
+    """
+    Création d'un nouveau compte client
+    ---
+    tags:
+      - auth
+    parameters:
+      - in: body
+        name: email
+        type: string
+        required: true
+      - in: body
+        name: password
+        type: string
+        required: true
+      - in: body
+        name: nom
+        type: string
+        required: true
+    responses:
+      200:
+        description: Nouveau compte créé avec succès
+      400:
+        description: Le compte existe déjà
+      500:
+        description: Erreur interne
+    """
     try:
         body = request.get_json()
 
@@ -36,19 +64,40 @@ def register_new_user():
         return jsonify({'error': str(e)}), 500
 
 @require_body_parameters({'email', 'password'})
-@bp.route("/login", methods=['POST'])
+@auth_bp.route("/login", methods=['POST'])
 def login():
+    """
+    Login avec un compte client ou admin
+    ---
+    tags:
+      - auth
+    parameters:
+      - in: body
+        name: email
+        type: string
+        required: true
+      - in: body
+        name: password
+        type: string
+        required: true
+    responses:
+      200:
+        description: Login réussi
+      401:
+        description: Identifiants invalides
+    """
     body = request.get_json()
     email = body["email"]
     password = body["password"]
 
     user = User.query.filter_by(email = email).first()
 
-    if  bcrypt.checkpw(password.encode(), user.password_hash):
+    if user and bcrypt.checkpw(password.encode(), user.password_hash):
         token = jwt.encode(
             {
                 "exp": datetime.now(UTC) + timedelta(hours=1),
                 "user": email,
+                "id": user.id,
                 "role": user.role
             },
             JWT_SECRET,
@@ -56,4 +105,4 @@ def login():
         )
         return jsonify({"token": token}), 200
     else:
-        return jsonify({"error": "Mot de passe invalide."}), 401
+        return jsonify({"error": "Identifiants invalides."}), 401
