@@ -73,7 +73,7 @@ Aucun fichier de base de données SQLite n'est nécessaire au démarrage.
 ## Structure du projet
 
 ```
-votre-projet/
+blent-flask-api/
 ├── app.py              # Point d'entrée de l'API
 ├── blueprints/         # Les différents modules de l'API
 ├── config.py           # Constantes de config
