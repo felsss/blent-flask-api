@@ -1,4 +1,4 @@
-# Fask REST API
+# Flask REST API
 
 Développement d'une API REST E-commerce avec Python/Flask et SQLAlchemy
 
